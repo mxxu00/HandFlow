@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+    content="HandFlow: Fully Generative 4D Hand Recovery with Flow Matching — A flow-matching framework for temporally coherent 3D hand pose and shape estimation from monocular video.">
+  <meta name="keywords" content="4D Hand Reconstruction, Motion Capture, Flow Matching, MANO, Hand Pose Estimation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>
+    HandFlow: 4D Hand Recovery
+  </title>
+
+  <link rel="icon" href="./static/images/icon.png">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=[GA-ID]"></script>
+
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+         }
+      };
+  </script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/interpolation.js"></script>
+  <style>
+    /* ---- Hero link buttons: dark pill style (à la HumanEgo) ---- */
+    .link-buttons { margin-top: 1.8em; display: flex; flex-wrap: wrap; justify-content: center; }
+    .link-buttons a {
+      display: inline-flex;
+      align-items: center;
+      padding: clamp(0.55em, 1.8vw, 0.72em) clamp(1.1em, 3.3vw, 1.5em);
+      margin: 0.28em;
+      background: #004bb3;
+      color: #fff !important;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: clamp(1.0rem, 2.9vw, 1.2rem);
+      font-weight: 500;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .link-buttons a:hover { background: #003a8c; transform: translateY(-2px); }
+
+    .image-container {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+    overflow: hidden;
+    }
+
+    .image-container img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+  .card-module {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    text-decoration: none !important;
+    color: inherit !important;
+    cursor: pointer;
+  }
+
+  .card-module:hover {
+    transform: scale(1.08);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important;
+    z-index: 10;
+    position: relative;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+
+  section {
+    scroll-margin-top: 80px;
+  }
+
+  .card-module {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    text-decoration: none !important;
+    color: inherit !important;
+    cursor: pointer;
+  }
+
+  .card-module:hover {
+    transform: scale(1.08);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15) !important;
+    z-index: 10;
+    position: relative;
+  }
+.floating-nav {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+}
+
+.floating-nav-trigger {
+  width: 50px;
+  height: 50px;
+  background-color: #3273dc;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.floating-nav:hover .floating-nav-trigger {
+  transform: scale(1.1);
+}
+
+.floating-nav-content {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 14px);
+  transform: translateY(-50%) translateX(20px);
+  background: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+/* 透明桥：填补卡片与触发按钮之间的 14px 间隙，
+   保证鼠标横向滑入卡片时 hover 不中断（否则菜单会闪退） */
+.floating-nav-content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -14px;
+  width: 14px;
+}
+
+.floating-nav:hover .floating-nav-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+.floating-nav-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.floating-nav-menu li {
+  margin-bottom: 10px;
+}
+
+.floating-nav-menu li:last-child {
+  margin-bottom: 0;
+}
+
+.floating-nav-link {
+  color: #4a4a4a;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+  display: block;
+}
+
+.floating-nav-link:hover,
+.floating-nav-link.active {
+  color: #3273dc;
+  font-weight: bold;
+}
+
+
+  /* === Sequence carousel switcher === */
+  .seq-tabs { margin-top: 0.5rem; }
+  .seq-tabbar {
+    display: flex; gap: 2px; flex-wrap: wrap; justify-content: center;
+    border-bottom: 2px solid #e5e5e5; margin-bottom: 1.25rem;
+  }
+  .seq-tab {
+    appearance: none; background: transparent; border: none;
+    padding: 0.55rem 1.1rem; font: 600 0.92rem 'Noto Sans', sans-serif;
+    color: #888; cursor: pointer;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: color .15s, border-color .15s;
+  }
+  .seq-tab:hover { color: #3273dc; }
+  .seq-tab.is-active { color: #3273dc; border-bottom-color: #3273dc; }
+
+  .seq-carousel { display: flex; align-items: center; gap: 6px; }
+  .seq-viewport { overflow: hidden; flex: 1 1 auto; min-width: 0; }
+  .seq-track {
+    display: flex;
+    transition: transform .4s cubic-bezier(0.16, 1, 0.1, 1);
+    will-change: transform;
+  }
+  .seq-panel { flex: 0 0 100%; min-width: 0; box-sizing: border-box; }
+  .seq-arrow {
+    flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%;
+    border: none; background: #fff; color: #3273dc;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
+  }
+  .seq-arrow:hover { background: #3273dc; color: #fff; transform: scale(1.08); box-shadow: 0 4px 14px rgba(50,115,220,0.35); }
+  .seq-arrow:active { transform: scale(0.95); }
+  .seq-arrow svg { display: block; }
+  </style>
+
+
+
+</head>
+
+<nav class="floating-nav" id="floatingNav">
+  <div class="floating-nav-trigger">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="3.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="3.5" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+
+  <div class="floating-nav-content">
+    <ul class="floating-nav-menu">
+      <li><a href="#top-video" class="floating-nav-link">Teaser</a></li>
+
+      <li><a href="#abstract" class="floating-nav-link">Abstract</a></li>
+      <li><a href="#method" class="floating-nav-link">Method</a></li>
+
+      <li><a href="#results-dataset" class="floating-nav-link">DexYCB Results</a></li>
+
+      <li><a href="#qualitative" class="floating-nav-link">HOT3D Results</a></li>
+
+      <li><a href="#citation" class="floating-nav-link">Citation</a></li>
+
+    </ul>
+  </div>
+</nav>
+
+<!--Top video-->
+<section class="hero is-link is-fullheight video" style="overflow: hidden; position:relative;" id = "top-video">
+
+  <div class="hero-video" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;">
+    <img src="./static/images/teaser_final.png" style="width: 100%; height: 100%; object-fit: cover;">
+  </div>
+  <div class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;"></div>
+
+  <div class="hero-body" style="position: relative; z-index: 2;">
+    <div class="container has-text-centered">
+      <h1 class="title is-1 publication-title is-size-1-mobile" style="font-size: 10rem; color:black;font-weight: 700;">
+        HandFlow
+      </h1>
+      <h1 class="subtitle is-1 publication-title is-size-4-mobile" style="font-size: 4rem; color:black;font-weight: 600;">
+        Fully Generative
+      </h1>
+      <h1 class="subtitle is-1 publication-title is-size-4-mobile" style="font-size: 4rem; color:black;font-weight: 600;">
+        4D Hand Recovery
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!--Title on the video-->
+<section class="hero " >
+  <div class="hero-body" style="padding-bottom: 0;">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title" style="max-width: 80%; margin: 0 auto; " ><span style ="color:steelblue">HandFlow</span>: Fully Generative 4D Hand Recovery with Flow Matching</h1>
+
+          <div class="publication-authors" style="margin-top: 1.75rem; font-size: 1.2rem;">
+            <span class="author-block">Mingxi Xu<sup>1*</sup>,</span>
+            <span class="author-block">Bowen Duan<sup>1*</sup>,</span>
+            <span class="author-block">Yi Gu<sup>1</sup>,</span>
+            <span class="author-block">Zhengyang Shen<sup>2</sup>,</span>
+            <span class="author-block">Renjing Xu<sup>1</sup>,</span>
+            <span class="author-block">Yutao Yue<sup>1,3†</sup></span>
+          </div>
+
+          <div class="publication-authors" style="margin-top: 0.8rem; font-size: 0.95rem; color: #666;">
+            <sup>1</sup>&nbsp;The Hong Kong University of Science and Technology (Guangzhou)&nbsp;&nbsp;&nbsp;
+            <sup>2</sup>&nbsp;Google&nbsp;&nbsp;&nbsp;
+            <sup>3</sup>&nbsp;Institute of Deep Perception Technology, JITRI
+            <div style="margin-top: 0.35rem; font-size: 0.85rem;">
+              <sup>*</sup>&nbsp;Equal contribution&nbsp;&nbsp;&nbsp;<sup>†</sup>&nbsp;Corresponding author
+            </div>
+          </div>
+
+          <div class="publication-authors" style="margin-top: 1.5rem;">
+            <div class="link-buttons">
+              <!-- TODO: 替换为论文 PDF 原文链接（如 https://arxiv.org/pdf/XXXX） -->
+              <a href="#" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>&nbsp;Paper</a>
+              <!-- TODO: 替换为 arXiv abstract 链接（如 https://arxiv.org/abs/XXXX） -->
+              <a href="#" target="_blank" rel="noopener"><i class="ai ai-arxiv"></i>&nbsp;arXiv</a>
+              <a href="https://github.com/mxxu00/HandFlow" target="_blank" rel="noopener"><i class="fab fa-github"></i>&nbsp;Code</a>
+              <!-- TODO: 替换为 Hugging Face 链接 -->
+              <a href="#" target="_blank" rel="noopener">🤗&nbsp;Models</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Abstract. -->
+
+<section class="section" style="margin-top: 3rem;" id="abstract">
+  <div class="container">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full">
+        <h2 class="title is-2">Abstract</h2>
+        <div class="content has-text-justified" style="margin-top: 3rem; font-size: 1rem;max-width: 70%;margin: 0 auto">
+          <p>
+            Accurate monocular 4D hand reconstruction remains challenging. Per-frame discriminative regressors lack temporal context and often produce jittery predictions. Temporal models improve consistency by aggregating information across frames, but they are typically deterministic regressors, making them vulnerable to ambiguous observations caused by occlusion and motion blur. Generative modeling offers a natural alternative by learning a prior over plausible hand motion sequences, enabling coherent hand-state recovery when visual evidence is incomplete or unreliable.
+          </p>
+          <p style="margin-top: 1rem;">
+            Motivated by this observation, we present <b>HandFlow</b>, a fully generative flow-matching framework for temporally coherent 3D hand pose and shape estimation from monocular video. We formulate 4D hand reconstruction as conditional generation in the MANO parameter space. Given visual and skeletal observations, HandFlow denoises an entire temporal window of joint poses, global translations, and hand shape through a single ODE integration. To capture long-range temporal dependencies, we design a Flux-style dual-stream transformer that jointly attends to latent hand parameters and visual-skeletal conditions across the full sequence, avoiding the sequential bottleneck of autoregressive decoding. To handle noisy or missing observations, we introduce a continuous masking mechanism that blends observed conditional features with learnable mask tokens according to per-frame hand confidence scores.
+          </p>
+          <p style="margin-top: 1rem;">
+            Experiments on DexYCB and HOT3D show that HandFlow achieves state-of-the-art performance, with particularly large gains in world-space accuracy and temporal smoothness. It <b>reduces world-space pose error by over 30%</b> compared with the strongest baseline and achieves the lowest acceleration error among all evaluated methods, while remaining competitive in per-frame pose accuracy. Moreover, on a single GPU HandFlow reconstructs a 150-frame sequence at <b>≈47 fps, about 12× faster</b> than the fastest prior video-based method, with reconstruction itself accounting for only a small fraction of the end-to-end latency. Our model and code are publicly available at <a href="https://mxxu00.github.io/HandFlow/">https://mxxu00.github.io/HandFlow/</a>.
+          </p>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section class="section" style="margin-top: 0rem;background-color: #fafafa;" id="method">
+  <div class="container">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full">
+        <h2 class="title is-2">Method Overview</h2>
+        <div class="content has-text-justified" style="margin-top: 3rem; font-size: 1rem;max-width: 60%;margin: 0 auto">
+            <div style="margin-top: 3rem; margin-bottom: 1rem;">
+                <a href="./static/images/HandFlow_editable_pipeline.pdf" target="_blank">
+                  <img src="./static/images/HandFlow_editable_pipeline.png" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="HandFlow Pipeline Overview">
+                </a>
+                <p style="color: #888; font-size: 0.9rem; margin-top: 0.5rem; text-align: center;">Click image to view vector PDF</p>
+            </div>
+        </div>
+        <div class="content has-text-justified" style="margin-top: 1rem; font-size: 1rem;max-width: 70%;margin: 0 auto">
+          <p>
+            <b>HandFlow</b> formulates 4D hand reconstruction as conditional flow matching in MANO parameter space. The pipeline has three stages:
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <b>1. Condition Extraction:</b> A frozen HaMeR frontend extracts per-frame hand crops, dense visual tokens (patch features from ViT-Huge), 2D skeletal cues encoded as camera-normalized 3D rays, and detection confidence scores. A <b>continuous masking mechanism</b> interpolates between observed features and learnable mask tokens based on per-frame confidence, so low-confidence frames gracefully fall back to the learned motion prior.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <b>2. Flow-Matching Denoising:</b> A rectified-flow formulation denoises the packed MANO parameter sequence from noise to signal through a <b>single ODE integration</b>. A <b>dual-stream transformer</b> jointly processes noisy MANO parameters ($z$-stream: shape $\beta$, pose $\theta$, translation $t$) and visual-skeletal conditions ($c$-stream) over the full temporal window.
+          </p>
+          <p style="margin-top: 0.5rem;">
+            <b>3. Overlapping Window Inference:</b> For long videos, overlapping sliding windows are merged via <b>velocity blending</b> during ODE integration using center-distance weights, avoiding discontinuities of post-hoc averaging.
+          </p>
+        </div>
+         <p class="has-text-centered is-size-3"
+          style="max-width: 90%; margin: 0 auto 30px auto;font-weight: 900;margin-top: 3rem;">
+          Applications / Results:
+        </p>
+
+      </div>
+    </div>
+    <div class="cards-grid" style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: center;
+      ">
+
+        <a href="#results-dataset" class="card-module" style="
+              background: white;
+              padding: 30px;
+              border-radius: 14px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+              width: 250px;
+              height: 150px;
+              text-align: center;
+            ">
+          <div class="card-title" style="font-size: 1.25em; font-weight: bold; margin-bottom: 10px; color: #004bb3;">
+            DexYCB Results
+          </div>
+          <div class="card-subtitle" style="font-size: 0.9em; margin-bottom: 15px; color: #555;">
+            Camera Space
+          </div>
+        </a>
+
+        <a href="#qualitative" class="card-module" style="
+              background: white;
+              padding: 30px;
+              border-radius: 14px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+              width: 250px;
+              height: 150px;
+              text-align: center;
+            ">
+          <div class="card-title" style="font-size: 1.25em; font-weight: 600; margin-bottom: 10px; color: #004bb3;">
+            HOT3D Results
+          </div>
+          <div class="card-subtitle" style="font-size: 0.9em; margin-bottom: 15px; color: #555;">
+            World Space (with SLAM)
+          </div>
+        </a>
+
+      </div>
+
+
+    </div>
+
+  </div>
+</section>
+
+
+
+<section class="section" id="results-dataset">
+
+  <!-- Title outside the card -->
+  <h2 class="title is-2"
+    style="text-align: center; padding-bottom: 25px; color:#004bb3">
+    DexYCB Results
+  </h2>
+
+  <!-- Card container -->
+  <div class="container"
+    style="
+      max-width: 90%;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    ">
+
+    <div class="columns is-centered">
+      <div class="column is-full">
+
+        <p class="has-text-centered is-size-5"
+          style="max-width: 90%; margin: 0 auto 30px auto;margin-bottom: 0rem;">
+          <span style="font-weight: 600;">HandFlow leads on every metric on DexYCB, with the largest gains under heavy occlusion.</span>
+        </p>
+        <p class="has-text-centered is-size-5"
+          style="max-width: 90%; margin: 0 auto 30px auto; margin-top: 0rem;">
+          Qualitative comparison on 6 representative sequences spanning multiple subjects and diverse hand–object interactions.
+        </p>
+        <!-- Sample tabs -->
+        <div class="seq-tabs" data-tabs>
+          <div class="seq-tabbar" role="tablist">
+            <button class="seq-tab is-active" data-target="dex-1">Sample 1</button>
+            <button class="seq-tab" data-target="dex-2">Sample 2</button>
+            <button class="seq-tab" data-target="dex-3">Sample 3</button>
+            <button class="seq-tab" data-target="dex-4">Sample 4</button>
+            <button class="seq-tab" data-target="dex-5">Sample 5</button>
+            <button class="seq-tab" data-target="dex-6">Sample 6</button>
+          </div>
+          <div class="seq-carousel">
+            <button class="seq-arrow seq-arrow-prev" type="button" aria-label="Previous sample"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="seq-viewport">
+              <div class="seq-track">
+          <div class="seq-panel is-active" id="dex-1">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_cam_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_cam_gt_pred_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_cam_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_cam_gt_pred_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_cam_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_cam_gt_pred_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_142802_932122061900_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="dex-2">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_cam_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_cam_gt_pred_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_cam_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_cam_gt_pred_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_cam_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_cam_gt_pred_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200709-subject-01_20200709_151948_839512060362_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="dex-3">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_cam_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_cam_gt_pred_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_cam_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_cam_gt_pred_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_cam_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_cam_gt_pred_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_145612_839512060362_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="dex-4">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_cam_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_cam_gt_pred_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_cam_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_cam_gt_pred_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_cam_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_cam_gt_pred_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_150228_840412060917_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="dex-5">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_cam_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_cam_gt_pred_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_cam_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_cam_gt_pred_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_cam_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_cam_gt_pred_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_152215_839512060362_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="dex-6">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 22%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_cam_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_cam_gt_pred_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_cam_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_cam_gt_pred_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_cam_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_cam_gt_pred_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/dexycb/20200813-subject-02_20200813_153152_839512060362_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:4/3; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+              </div>
+            </div>
+            <button class="seq-arrow seq-arrow-next" type="button" aria-label="Next sample"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--Section 2-->
+  <h2 class="title is-2"
+    style="text-align: center; padding-bottom: 25px; color:#004bb3">
+    HOT3D Results
+  </h2>
+
+  <div class="container"
+    style="
+      max-width: 90%;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    ">
+
+    <div class="columns is-centered">
+      <div class="column is-full">
+
+        <p class="has-text-centered is-size-5"
+          style="max-width: 90%; margin: 0 auto 30px auto;margin-bottom: 0rem;">
+          <span style="font-weight: 600;">HandFlow sets a new state of the art on HOT3D in world-space accuracy and temporal smoothness, reducing world-space pose error by over 30% while remaining competitive in per-frame pose accuracy.</span>
+        </p>
+        <p class="has-text-centered is-size-5"
+          style="max-width: 90%; margin: 0 auto 30px auto; margin-top: 0rem;">
+          Camera + World Space evaluation on 6 representative sequences. Rows: HaMeR / HaWoR / HandFlow (Ours). Columns: Cam Overlay / Cam / Perspective / Topdown / Side.
+        </p>
+
+        <!-- Sample tabs -->
+        <div class="seq-tabs" data-tabs>
+          <div class="seq-tabbar" role="tablist">
+            <button class="seq-tab is-active" data-target="hot-1">Sample 1</button>
+            <button class="seq-tab" data-target="hot-2">Sample 2</button>
+            <button class="seq-tab" data-target="hot-3">Sample 3</button>
+            <button class="seq-tab" data-target="hot-4">Sample 4</button>
+            <button class="seq-tab" data-target="hot-5">Sample 5</button>
+            <button class="seq-tab" data-target="hot-6">Sample 6</button>
+          </div>
+          <div class="seq-carousel">
+            <button class="seq-arrow seq-arrow-prev" type="button" aria-label="Previous sample"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="seq-viewport">
+              <div class="seq-track">
+          <div class="seq-panel is-active" id="hot-1">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Perspective</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_first_person_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_first_person_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_perspective_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_first_person_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_first_person_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_perspective_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_first_person_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_first_person_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_perspective_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-001900_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="hot-2">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Perspective</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_first_person_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_first_person_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_perspective_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_first_person_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_first_person_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_perspective_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_first_person_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_first_person_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_perspective_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002163_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="hot-3">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Perspective</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_first_person_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_first_person_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_perspective_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_first_person_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_first_person_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_perspective_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_first_person_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_first_person_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_perspective_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002167_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="hot-4">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Perspective</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_first_person_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_first_person_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_perspective_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_first_person_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_first_person_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_perspective_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_first_person_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_first_person_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_perspective_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002654_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="hot-5">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Perspective</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_first_person_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_first_person_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_perspective_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_first_person_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_first_person_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_perspective_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_first_person_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_first_person_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_perspective_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002871_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <div class="seq-panel" id="hot-6">
+        <div style="overflow-x: auto; margin-bottom: 3rem;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th style="width: 12%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;"></th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam Overlay</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Cam</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Perspective</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Topdown</th>
+                <th style="width: 18%; text-align: center; padding: 8px 4px; font-weight: 600; color: #555; font-size: 0.85rem;">Side</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaMeR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_first_person_overlay_HaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_first_person_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_perspective_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_topdown_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_side_GTpHaMeR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 600; color: #3273dc; font-size: 0.9rem; padding: 8px 4px;">HaWoR</td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_first_person_overlay_HaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_first_person_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_perspective_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_topdown_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_side_GTpHaWoR.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+              <tr>
+                <td style="text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.9rem; padding: 8px 4px; background: #f0f6ff; border-radius: 4px;">HandFlow <span style="color:#3273dc; font-size:0.75rem;">(Ours)</span></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_first_person_overlay_4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_first_person_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_perspective_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_topdown_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+                <td style="padding: 4px;"><video src="./static/videos/hot3d/clip-002952_side_GTp4DHPE.mp4" style="width:100%; aspect-ratio:1/1; border-radius:4px; background:#000;" preload="metadata" controls muted loop playsinline></video></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+              </div>
+            </div>
+            <button class="seq-arrow seq-arrow-next" type="button" aria-label="Next sample"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Citation. -->
+<section class="section" id="citation" style="background-color: #fafafa;">
+  <div class="container">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full">
+        <h2 class="title is-2">Citation</h2>
+        <div class="content" style="max-width: 70%; margin: 2rem auto 0;">
+          <p style="margin-bottom: 1.25rem;">If you find our work useful, please consider citing:</p>
+          <div style="position: relative; text-align: left;">
+            <pre style="background: #ffffff; border: 1px solid #dbdbdb; border-radius: 6px; padding: 1.4rem 1.6rem; font-size: 0.85rem; overflow-x: auto; line-height: 1.55; margin: 0;"><code id="bibtex-content">@misc{xu2026handflow,
+  title         = {HandFlow: Fully Generative 4D Hand Recovery with Flow Matching},
+  author        = {Xu, Mingxi and Duan, Bowen and Gu, Yi and Shen, Zhengyang and Xu, Renjing and Yue, Yutao},
+  year          = {2026},
+  note          = {Preprint},
+  url           = {https://mxxu00.github.io/HandFlow/}
+}</code></pre>
+            <button id="copy-bibtex" class="button is-small" type="button" style="position: absolute; top: 0.6rem; right: 0.6rem;" onclick="copyBibtex()">
+              <i class="fas fa-copy"></i>&nbsp;<span id="copy-bibtex-label">Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+
+
+<style>
+.interpolation-panel img {
+    border-radius: 5px;
+    border: 1px solid #dbdbdb;
+}
+.image-wrapper-fix img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+</style>
+
+
+
+
+<script src="./static/js/seq-tabs.js"></script>
+<script>
+  // 复制 BibTeX 到剪贴板
+  function copyBibtex() {
+    var text = document.getElementById('bibtex-content').innerText;
+    var btn = document.getElementById('copy-bibtex');
+    var label = document.getElementById('copy-bibtex-label');
+    var done = function () {
+      label.textContent = 'Copied!';
+      btn.classList.add('is-success');
+      setTimeout(function () {
+        label.textContent = 'Copy';
+        btn.classList.remove('is-success');
+      }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  }
+</script>
+</body>
+
+</html>
