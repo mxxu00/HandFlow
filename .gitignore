@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+
+# Weights / data (downloaded by the user, see README)
+*.ckpt
+*.pt
+*.pth
+checkpoints/
+weights/
+data/
+dataset/
+*.npz
+*.lmdb
+
+# Inference / render output (covers both extension cases; iPhone videos are often .MOV)
+output/
+results/
+logs/
+*.[mM][pP]4
+*.[aA][vV][iI]
+*.[mM][oO][vV]
+
+# Environment / credentials
+.venv/
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code (local guidance files, not checked in)
+.claude/
+CLAUDE.md
+
+# Local maintainer-only scripts (not checked in)
+scripts/smoke_test.sh
+scripts/*.slurm
+scripts/vipe_*.py
+
+# Temporary / debug
+tmp_*/
+*.tmp

@@ -1,0 +1,21 @@
+# HandFlow inference configuration
+# Shared by scripts/demo.py
+
+model_yaml: configs/model.yaml
+
+# The denoiser requires window_size (only this field; other dataset fields are eval-only and omitted)
+dataset:
+  window_size: 16
+
+inference:
+  ode_steps: 3
+  overlap_size: 2
+  overlap_method: vblend      # avg | vblend
+  window_size: 16
+  conf_threshold: 0.1         # HaMeR confidence threshold
+
+# MANO model directory (environment variable, see README; overridable by run-script CLI args)
+eval:
+  mano_root: ${oc.env:MANO_ROOT}
+
+# fm_ckpt is passed via the run script's --fm_ckpt CLI arg (specified per inference)

@@ -1,0 +1,31 @@
+# HandFlow V1 — inference + render deps (no training deps)
+# One-line install: pip install -r requirements.txt
+# Or use setup_env.sh to create a conda environment
+
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+# -- PyTorch (CUDA 12.8; matches the ViPE environment, see setup_vipe_env.sh) --
+torch==2.7.0+cu128
+torchvision==0.22.0+cu128
+
+# -- Inference core --
+numpy
+scipy
+omegaconf
+tqdm
+
+# -- Hand detection + MANO FK --
+ultralytics          # YOLO detection (detector.pt weights from WiLoR, see README)
+manopth              # MANO forward kinematics
+
+# -- Rendering (demo.py -> mp4, pytorch3d Phong shading) --
+# pytorch3d must match the torch/CUDA above; no prebuilt wheel for torch 2.7+cu128, so build from source:
+#   pip install "git+https://github.com/facebookresearch/pytorch3d.git@v0.7.8"
+pytorch3d
+opencv-python
+imageio[ffmpeg]
+matplotlib
+
+# The following two are installed separately as submodules:
+#   HaMeR backbone:  pip install -e third_party/hamer
+#   ViPE SLAM (optional): see setup_vipe_env.sh (standalone environment)

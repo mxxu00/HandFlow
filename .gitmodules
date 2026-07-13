@@ -1,0 +1,6 @@
+[submodule "third_party/hamer"]
+	path = third_party/hamer
+	url = https://github.com/geopavlakos/hamer.git
+[submodule "third_party/vipe"]
+	path = third_party/vipe
+	url = https://github.com/nv-tlabs/vipe.git

@@ -1,0 +1,29 @@
+model:
+  fm:
+    beta_dim: 10
+    pose_dim: 48         # global_aa(3) + joints_aa(45), directly regressed per frame
+    trans_dim: 3         # translation, directly regressed
+    normalization_stats: ${oc.env:HANDFLOW_NORMALIZATION_STATS}
+
+    condition:
+      hamer_embed_dim: 1280
+      hamer_n_tokens: 192       # 16×12 patches
+      n_joints: 21
+      skeleton_pe_freqs: 6
+      cmask_ratio: 0.2
+
+    frame_compressor:
+      num_layers: 8             # cross-attention pooling layers (replaces Refiner + Compressor)
+
+    transformer:
+      hidden_size: 512
+      num_heads: 16
+      depth: 8                  # double-stream blocks
+      depth_single_blocks: 16   # single-stream blocks
+      mlp_ratio: 4.0
+      qkv_bias: true
+      dropout: 0.1
+
+  hamer:
+    checkpoint: ${oc.env:HAMER_CKPT}
+    frozen: true
