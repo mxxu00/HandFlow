@@ -310,13 +310,10 @@
 
           <div class="publication-authors" style="margin-top: 1.5rem;">
             <div class="link-buttons">
-              <!-- TODO: 替换为论文 PDF 原文链接（如 https://arxiv.org/pdf/XXXX） -->
-              <a href="#" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>&nbsp;Paper</a>
-              <!-- TODO: 替换为 arXiv abstract 链接（如 https://arxiv.org/abs/XXXX） -->
-              <a href="#" target="_blank" rel="noopener"><i class="ai ai-arxiv"></i>&nbsp;arXiv</a>
+              <a href="https://arxiv.org/pdf/2607.11221" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i>&nbsp;Paper</a>
+              <a href="https://arxiv.org/abs/2607.11221" target="_blank" rel="noopener"><i class="ai ai-arxiv"></i>&nbsp;arXiv</a>
               <a href="https://github.com/mxxu00/HandFlow" target="_blank" rel="noopener"><i class="fab fa-github"></i>&nbsp;Code</a>
-              <!-- TODO: 替换为 Hugging Face 链接 -->
-              <a href="#" target="_blank" rel="noopener">🤗&nbsp;Models</a>
+              <a href="https://huggingface.co/mxxu00/HandFlow" target="_blank" rel="noopener">🤗&nbsp;Models</a>
             </div>
           </div>
         </div>
@@ -341,7 +338,7 @@
             Motivated by this observation, we present <b>HandFlow</b>, a fully generative flow-matching framework for temporally coherent 3D hand pose and shape estimation from monocular video. We formulate 4D hand reconstruction as conditional generation in the MANO parameter space. Given visual and skeletal observations, HandFlow denoises an entire temporal window of joint poses, global translations, and hand shape through a single ODE integration. To capture long-range temporal dependencies, we design a Flux-style dual-stream transformer that jointly attends to latent hand parameters and visual-skeletal conditions across the full sequence, avoiding the sequential bottleneck of autoregressive decoding. To handle noisy or missing observations, we introduce a continuous masking mechanism that blends observed conditional features with learnable mask tokens according to per-frame hand confidence scores.
           </p>
           <p style="margin-top: 1rem;">
-            Experiments on DexYCB and HOT3D show that HandFlow achieves state-of-the-art performance, with particularly large gains in world-space accuracy and temporal smoothness. It <b>reduces world-space pose error by over 30%</b> compared with the strongest baseline and achieves the lowest acceleration error among all evaluated methods, while remaining competitive in per-frame pose accuracy. Moreover, on a single GPU HandFlow reconstructs a 150-frame sequence at <b>≈47 fps, about 12× faster</b> than the fastest prior video-based method, with reconstruction itself accounting for only a small fraction of the end-to-end latency. Our model and code are publicly available at <a href="https://mxxu00.github.io/HandFlow/">https://mxxu00.github.io/HandFlow/</a>.
+            Experiments on DexYCB and HOT3D show that HandFlow achieves state-of-the-art performance, with particularly large gains in world-space accuracy and temporal smoothness. It <b>reduces world-space pose error by over 30%</b> compared with the strongest baseline and achieves the lowest acceleration error among all evaluated methods, while remaining competitive in per-frame pose accuracy. Moreover, on a single GPU HandFlow reconstructs a 150-frame sequence at <b>≈47 fps, about 12× faster</b> than the fastest prior video-based method, with reconstruction itself accounting for only a small fraction of the end-to-end latency.
           </p>
 
       </div>
@@ -1046,11 +1043,12 @@
           <p style="margin-bottom: 1.25rem;">If you find our work useful, please consider citing:</p>
           <div style="position: relative; text-align: left;">
             <pre style="background: #ffffff; border: 1px solid #dbdbdb; border-radius: 6px; padding: 1.4rem 1.6rem; font-size: 0.85rem; overflow-x: auto; line-height: 1.55; margin: 0;"><code id="bibtex-content">@misc{xu2026handflow,
-  title         = {HandFlow: Fully Generative 4D Hand Recovery with Flow Matching},
-  author        = {Xu, Mingxi and Duan, Bowen and Gu, Yi and Shen, Zhengyang and Xu, Renjing and Yue, Yutao},
-  year          = {2026},
-  note          = {Preprint},
-  url           = {https://mxxu00.github.io/HandFlow/}
+    title={HandFlow: Fully Generative 4D Hand Recovery with Flow Matching},
+    author={Mingxi Xu and Bowen Duan and Yi Gu and Zhengyang Shen and Renjing Xu and Yutao Yue},
+    year={2026},
+    eprint={2607.11221},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
 }</code></pre>
             <button id="copy-bibtex" class="button is-small" type="button" style="position: absolute; top: 0.6rem; right: 0.6rem;" onclick="copyBibtex()">
               <i class="fas fa-copy"></i>&nbsp;<span id="copy-bibtex-label">Copy</span>
